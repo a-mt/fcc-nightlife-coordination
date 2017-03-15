@@ -1,0 +1,22 @@
+{
+  "name": "nightlife-coordination",
+  "version": "1.0.0",
+  "description": "Build a Nightlife Coordination App",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "a-mt",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.17.1",
+    "connect-flash": "^0.1.1",
+    "dotenv": "^4.0.0",
+    "express": "^4.15.2",
+    "login": "file:local_modules/login",
+    "mongoose": "^4.9.0",
+    "pug": "^2.0.0-beta11",
+    "yelp": "^1.0.2"
+  }
+}

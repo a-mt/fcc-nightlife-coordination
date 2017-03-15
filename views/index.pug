@@ -1,0 +1,36 @@
+extends layout.pug
+
+block scripts
+
+    script var GOOGLE_API_KEY = "#{GOOGLE_API_KEY}"
+    script(src="/public/js/googlePlaces.js")
+    script(src="https://maps.googleapis.com/maps/api/js?key=" + GOOGLE_API_KEY + "&libraries=places&callback=GooglePlaces.initMap" async defer)
+    style.
+        .img {
+            width: 100px; margin-right: 15px;
+            text-align: center; min-height: 7em;
+        }
+        #backtotop {
+            display: none;
+            position: fixed; right: 10px; bottom: 10px; z-index: 999;
+            background: none; border: 0; cursor: pointer;
+        }
+        #backtotop img { border: 0; box-shadow: unset; padding: 0; }
+
+block content
+
+    br
+    div(class="jumbotron container")
+        p Search bars in your area
+        input(id="location-autocomplete" class="form-control" placeholder="Location")
+
+    div(class="container")
+        div(id="map" style="height:400px")
+
+        div(style="display:none")
+            div(id="info-content")
+
+        div(id="results" class="list-group")
+
+    button(id="backtotop" title="Back to top")
+        img(src="http://i.imgur.com/elAOMDc.png" alt="Back to top")

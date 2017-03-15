@@ -1,0 +1,27 @@
+extends ../../../../views/layout.pug
+
+block content
+    div(class="container")
+        if error
+            p(class="alert error") #{error}
+
+        form(method="post")
+            div(class="form-group")
+                label(for="username") Username
+                input(type="text" name="username" id="username" class="form-control" required)
+            
+            div(class="form-group")
+                label(for="password") Password
+                input(type="password" name="password" id="password" class="form-control" required)
+            
+            input(type="submit" class="btn btn-default" value="Login")
+
+            if github
+                a(href="/auth/github")
+                    div(class="btn btn-primary btn-github")
+                        img(src="http://i.imgur.com/PlB7qTM.png" alt="github logo" class="pull-left")
+                        p LOGIN WITH GITHUB
+
+        br
+        p Need an account?&nbsp;
+            a(href="/signup") Signup
