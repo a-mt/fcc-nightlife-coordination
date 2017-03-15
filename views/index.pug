@@ -2,7 +2,9 @@ extends layout.pug
 
 block scripts
 
-    script var GOOGLE_API_KEY = "#{GOOGLE_API_KEY}"
+    script
+        | var GOOGLE_API_KEY = "#{GOOGLE_API_KEY}";
+        | var isLoggedIn = #{(user ? 1 : 0)};
     script(src="/public/js/googlePlaces.js")
     script(src="https://maps.googleapis.com/maps/api/js?key=" + GOOGLE_API_KEY + "&libraries=places&callback=GooglePlaces.initMap" async defer)
     style.

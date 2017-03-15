@@ -1,5 +1,6 @@
 'use strict';
-var Yelp = require('yelp');
+var Yelp        = require('yelp');
+var PlanHandler = require('./plan');
 
 function YelpHandler(){
     
@@ -22,7 +23,9 @@ function YelpHandler(){
 
         yelp.search({ term: 'bars', location: location.replace(/ /g, '+') })
         .then(function (data) {
-          res.json(data);
+          PlanHandler.search(data, (req.user ? req.user.id : false), function(data){
+            res.json(data);
+          });
         })
         .catch(function (err) {
           var response = JSON.parse(err.data);
@@ -32,3 +35,6 @@ function YelpHandler(){
 }
 
 module.exports = YelpHandler;
+
+
+

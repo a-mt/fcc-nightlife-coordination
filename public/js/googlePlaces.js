@@ -1,6 +1,7 @@
 /*global google*/
 
 var GooglePlaces = {
+    initFrom: false,
     map: false,
     infoWindow: false,
 
@@ -14,9 +15,19 @@ var GooglePlaces = {
     
     // Map displaying location and places (callback of google maps script)
     initMap: function(){
+        var coords = {lat: -34.397, lng: 150.644};
+        var zoom   = 3;
+
+        var init = $.cookie('lastSearch');
+        if(init) {
+            GooglePlaces.initFrom = JSON.parse(init);
+            coords = GooglePlaces.initFrom.coords;
+            zoom   = 15;
+        }
+
         GooglePlaces.map = new google.maps.Map(document.getElementById('map'), {
-            center: {lat: -34.397, lng: 150.644},
-            zoom: 3,
+            center: coords,
+            zoom: zoom,
             styles: [{
                 featureType: "poi",
                 elementType: "labels",
@@ -43,6 +54,12 @@ var GooglePlaces = {
         var options = {
             types: ['(cities)']
         };
+        if(GooglePlaces.initFrom) {
+            input.value = GooglePlaces.initFrom.name;
+            setTimeout(function(){
+                GooglePlaces.search(input.value);
+            }, 100);
+        }
         GooglePlaces.autocomplete = new google.maps.places.Autocomplete(input, options);
         GooglePlaces.autocomplete.addListener('place_changed', GooglePlaces.onPlaceChanged);
     },
@@ -59,12 +76,16 @@ var GooglePlaces = {
         GooglePlaces.map.setZoom(15);
 
         // Search places
+        $.cookie('lastSearch', JSON.stringify({
+            name:   place.formatted_address,
+            coords: place.geometry.location
+        }), { expires : 1 });
+
         GooglePlaces.search(place.formatted_address);
     },
     
     // Search places in that location
     search: function(name) {
-        $.cookie('lastSearch', name, { expires : 1 });
 
         $.ajax({
             url: '/search',
@@ -93,7 +114,7 @@ var GooglePlaces = {
         // https://developers.google.com/maps/documentation/javascript/examples/places-autocomplete-hotelsearch?hl=fr
         for (var i = 0; i < results.length; i++) {
             var result = results[i];
-            result.num = (i+1);
+            result.num = i;
 
             // Create a new marker on the map
             var marker = GooglePlaces.markers[i] = new google.maps.Marker({
@@ -123,7 +144,7 @@ var GooglePlaces = {
                     + (result.image_url ? '<img src="' + result.image_url + '">' : '')
                 + '</div>'
 
-                + '<label>' + result.num + '. <a href="' + result.url + '">' + result.name + '</a></label><br>'
+                + '<label>' + (result.num+1) + '. <a href="' + result.url + '">' + result.name + '</a></label><br>'
                 + '<span class="rating">'
                     + '<img src="' + result.rating_img_url + '" tilte="' + result.rating + ' star rating">'
                     + '&nbsp;' + result.review_count + ' review' + (result.review_count == '1' ? '': 's')
@@ -134,6 +155,9 @@ var GooglePlaces = {
         for(var j=0; j<result.location.display_address.length; j++) {
             item += result.location.display_address[j] + '<br>';
         }
+        item += '<br><button type="button" class="btn js-going' + (result.going.user ? ' btn-primary' : '') + '" data-id="' + result.id + '" data-num="' + result.num + '">'
+                        + result.going.total + ' Going'
+                    + '</button>';
         item += '</div>';
         return item;
     },
@@ -142,17 +166,18 @@ var GooglePlaces = {
     getResultPreview: function(result) {
         var item = '';
 
-        item += '<label>' + result.num + '. <a class="scrollto" data-num="' + result.num + '" href="#' + result.num + '">' + result.name + '</a></label><br>'
-                + '<span class="rating">'
-                    + '<img src="' + result.rating_img_url + '" tilte="' + result.rating + ' star rating">'
-                    + '&nbsp;' + result.review_count + ' review' + (result.review_count == '1' ? '': 's')
-                + '</span>';
-
+        item += '<label>' + (result.num+1) + '. <a class="scrollto" data-num="' + result.num + '" href="#' + (result.num+1) + '">' + result.name + '</a></label>';
         item += '<div class="address">';
         for(var j=0; j<result.location.display_address.length; j++) {
             item += result.location.display_address[j] + '<br>';
         }
         item += '</div>';
+
+        item += '<br><span class="rating">'
+                    + '<img src="' + result.rating_img_url + '" tilte="' + result.rating + ' star rating">'
+                    + '&nbsp;' + result.review_count + ' review' + (result.review_count == '1' ? '': 's')
+                + '</span><br>'
+                + '<span>' + result.going.total + ' Going</span>';
         return item;
     },
 
@@ -182,6 +207,31 @@ $(document).ready(function(){
 	$("#backtotop").on('click', function(){
 		$('html,body').animate({scrollTop: 0}, 'slow');
 	});
+
+	$('#results').on('click', '.js-going', function(){
+        if(!isLoggedIn) {
+            window.location.href= '/login';
+            return;
+        }
+
+	   var $btn = $(this);
+	   var num  = $btn.data('num');
+	   var id   = $btn.data('id');
+
+	   $.ajax({
+	       url: '/plan',
+	       method: 'POST',
+	       data: {
+	           id: id
+	       },
+	       success: function(data) {
+	           $btn.toggleClass('btn-primary', data.user);
+	           $btn.html(data.total + ' Going');
+
+	           GooglePlaces.markers[num].placeResult.going = data;
+	       }
+	   });
+	});
 });
 
 // Retour haut de page
@@ -192,9 +242,3 @@ $(window).scroll(function() {
 		$("#backtotop").show('slow');
 	}
 });
-
-function repeat(str, n) {
-    if(!n) return '';
-    else if(n==1) return str;
-    else return (new Array(n+1)).join(str);
-}
