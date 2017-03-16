@@ -1,5 +1,7 @@
 # Nightlife Coordination App
 
+Demo on https://nightlife-coordination-36003.herokuapp.com/
+
 ## User Stories
 
 * As an unauthenticated user
